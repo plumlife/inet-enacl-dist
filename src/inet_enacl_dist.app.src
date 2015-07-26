@@ -1,0 +1,11 @@
+{application, inet_enacl_dist,
+ [{description, "ENaCL distributed Erlang module"}
+ ,{vsn, "1.0.0"}
+ ,{registered, []}
+ ,{applications,
+   [ kernel
+   , stdlib
+   ]}
+ ,{env,[]}
+ ,{modules, []}
+ ]}.
