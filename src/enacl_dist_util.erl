@@ -374,21 +374,13 @@ gen_digest(Challenge, Cookie) when is_integer(Challenge), is_atom(Cookie) ->
 %% gen_challenge() returns a "random" number
 %% ---------------------------------------------------------------
 gen_challenge() ->
-    Bytes = enacl:randombytes(256),
+    Bytes = enacl:randombytes(4),
     Hex   = bin_to_hexstr(Bytes),
     list_to_integer(Hex, 16).
 
 bin_to_hexstr(Bin) ->
   lists:flatten([io_lib:format("~2.16.0B", [X]) ||
     X <- binary_to_list(Bin)]).
-
-hexstr_to_bin(S) ->
-  hexstr_to_bin(S, []).
-hexstr_to_bin([], Acc) ->
-  list_to_binary(lists:reverse(Acc));
-hexstr_to_bin([X,Y|T], Acc) ->
-  {ok, [V], []} = io_lib:fread("~16u", [X,Y]),
-  hexstr_to_bin(T, [V | Acc]).
 
 %%
 %% Get the cookies for a node from auth
@@ -597,7 +589,7 @@ recv_challenge_reply(#hs_data{socket = Socket,
 			      f_recv = FRecv}, 
 		     ChallengeA, Cookie) ->
     case FRecv(Socket, 0, infinity) of
-	{ok,[$r,CB3,CB2,CB1,CB0 | SumB]} when length(SumB) =:= 16 ->
+	{ok,[$r,CB3,CB2,CB1,CB0 | SumB]} when length(SumB) =:= 64 ->
 	    SumA = gen_digest(ChallengeA, Cookie),
 	    ChallengeB = ?u32(CB3,CB2,CB1,CB0),
 	    ?trace("recv_reply: challenge=~w digest=~p\n",
@@ -619,7 +611,7 @@ recv_challenge_ack(#hs_data{socket = Socket, f_recv = FRecv,
 			    other_node = NodeB}, 
 		   ChallengeB, CookieA) ->
     case FRecv(Socket, 0, infinity) of
-	{ok,[$a|SumB]} when length(SumB) =:= 16 ->
+	{ok,[$a|SumB]} when length(SumB) =:= 64 ->
 	    SumA = gen_digest(ChallengeB, CookieA),
 	    ?trace("recv_ack: digest=~p\n", [SumB]),
 	    ?trace("sum = ~p\n", [SumA]),
