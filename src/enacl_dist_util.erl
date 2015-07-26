@@ -374,7 +374,21 @@ gen_digest(Challenge, Cookie) when is_integer(Challenge), is_atom(Cookie) ->
 %% gen_challenge() returns a "random" number
 %% ---------------------------------------------------------------
 gen_challenge() ->
-    enacl:randombytes(256).
+    Bytes = enacl:randombytes(256),
+    Hex   = bin_to_hexstr(Bytes),
+    list_to_integer(Hex, 16).
+
+bin_to_hexstr(Bin) ->
+  lists:flatten([io_lib:format("~2.16.0B", [X]) ||
+    X <- binary_to_list(Bin)]).
+
+hexstr_to_bin(S) ->
+  hexstr_to_bin(S, []).
+hexstr_to_bin([], Acc) ->
+  list_to_binary(lists:reverse(Acc));
+hexstr_to_bin([X,Y|T], Acc) ->
+  {ok, [V], []} = io_lib:fread("~16u", [X,Y]),
+  hexstr_to_bin(T, [V | Acc]).
 
 %%
 %% Get the cookies for a node from auth
